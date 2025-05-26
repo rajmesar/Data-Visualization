@@ -1,0 +1,78 @@
+---
+title: "Balachandra Raju Data Visualization Final Exam"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(shiny)
+library(tidyverse)
+library(maps)
+college <- read.csv("college.csv")
+states <- map_data("state")
+college <- college %>%
+  filter(state=="NJ")
+states<-states%>%filter(region=="new jersey")
+
+```
+
+# Page 1 {data-orientation="columns"}
+
+## Input {.sidebar}
+
+### User Input
+
+```{r echo=FALSE}
+radioButtons(inputId="ctrlA",label="Public and Private",choices=c("Private", "Public"))
+
+```
+
+## column
+
+### Chart
+
+```{r}
+renderPlot(
+     ggplot(filter(college, control == input$ctrlA), aes(x=name, y=undergrads))+
+      geom_bar(stat = "identity", width = 0.7, color ="steelblue", fill ="red")+
+            ggtitle("Undergrads in new jersey")+
+            theme_classic()+
+            theme(axis.text.x=element_text(angle=65, hjust=1, size = 10))+ 
+            labs(x="Name", y="Undergrad")
+     )
+
+```
+
+# Page 2 {data-orientation="columns"}
+
+## Input {.sidebar}
+
+### User Input
+
+```{r}
+radioButtons(inputId="ctrlB", label="Public and Private" ,choices=c("Public","Private"))
+```
+
+## Column
+
+### Chart
+
+```{r}
+ renderPlot(
+ggplot(states, aes(x=long, y=lat)) + 
+geom_polygon(fill = "steelblue", colour = "red",alpha=0.7) +
+coord_quickmap()+
+geom_point(filter(college,control==input$ctrlB), mapping= aes(x=lng, y=lat, cex=undergrads,color=control))+
+geom_text(filter(college, control==input$ctrlB), mapping= aes(x=lng, y=lat,label=name),cex=2.5,inherit.aes = FALSE,check_overlap = TRUE)+
+  scale_size_continuous()+
+      scale_color_discrete()+
+      theme_dark()+
+  ggtitle("Colleges and Universities in new jersey")+
+  labs(cex="Undergrad Population",color="Institutional Control")
+)
+
+```
